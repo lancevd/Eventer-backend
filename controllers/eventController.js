@@ -3,21 +3,18 @@ import Event from "../models/event.js";
 // Get all events
 export const getEvents = async (req, res) => {
   try {
-    const events = await Event.find();
+    const events = await Event.find().populate("createdBy", "username");
     res.json(events);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get an event by ID
-export const getEventById = async (req, res) => {
+// Get events created by the logged-in user
+export const getUserEvents = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
-    if (event == null) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    res.json(event);
+    const events = await Event.find({ createdBy: req.user._id });
+    res.json(events);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -25,7 +22,7 @@ export const getEventById = async (req, res) => {
 
 // Create a new event
 export const createEvent = async (req, res) => {
-  const { name, date, time, location, description, image } = req.body;
+  const { name, date, time, location, description } = req.body;
 
   try {
     const newEvent = new Event({
@@ -34,7 +31,8 @@ export const createEvent = async (req, res) => {
       time,
       location,
       description,
-      image,
+      image: req.file.path, // Assuming you're using multer to handle file uploads
+      createdBy: req.user._id,
     });
 
     await newEvent.save();
@@ -46,20 +44,29 @@ export const createEvent = async (req, res) => {
 
 // Update an event
 export const updateEvent = async (req, res) => {
-  const { name, date, time, location, description, image } = req.body;
+  const { id } = req.params;
+  const { name, date, time, location, description } = req.body;
 
   try {
-    const event = await Event.findById(req.params.id);
-    if (event == null) {
+    const event = await Event.findById(id);
+
+    if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (name != null) event.name = name;
-    if (date != null) event.date = date;
-    if (time != null) event.time = time;
-    if (location != null) event.location = location;
-    if (description != null) event.description = description;
-    if (image != null) event.image = image;
+    if (
+      event.createdBy.toString() !== req.user._id &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "User not authorized" });
+    }
+
+    event.name = name;
+    event.date = date;
+    event.time = time;
+    event.location = location;
+    event.description = description;
+    if (req.file) event.image = req.file.path; // If a new image is uploaded
 
     await event.save();
     res.json(event);
@@ -70,17 +77,25 @@ export const updateEvent = async (req, res) => {
 
 // Delete an event
 export const deleteEvent = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const { id } = req.params;
-    const event = await Event.findByIdAndRemove(id);
+    const event = await Event.findById(id);
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    res.json({ message: "Event deleted" });
+    if (
+      event.createdBy.toString() !== req.user._id &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "User not authorized" });
+    }
+
+    await event.remove();
+    res.json({ message: "Event removed" });
   } catch (err) {
-    console.error(err); // Log the error for debugging purposes
-    res.status(500).json({ message: "Error deleting event" });
+    res.status(500).json({ message: err.message });
   }
 };
