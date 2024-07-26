@@ -34,7 +34,7 @@ export const createEvent = async (req, res) => {
       time,
       location,
       description,
-      image: req.file ? req.file.filename : null, // Save the filename
+      image: req.file ? req.file.path : null, // Cloudinary provides the URL in req.file.path
       createdBy: req.user._id,
     });
 
@@ -44,6 +44,8 @@ export const createEvent = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+
 
 
 // Update an event

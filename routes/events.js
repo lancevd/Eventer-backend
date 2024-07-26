@@ -1,5 +1,4 @@
 import express from "express";
-import multer from "multer";
 import {
   getEvents,
   getUserEvents,
@@ -11,11 +10,6 @@ import { protect, admin } from "../middleware/auth.js";
 import upload from "../middleware/multer.js";
 
 const router = express.Router();
-
-// Configure multer for file uploads
-// const upload = multer({ dest: "uploads/" });
-router.post("/events", upload.single("image"), createEvent);
-
 
 // Public routes
 router.get("/", getEvents);
