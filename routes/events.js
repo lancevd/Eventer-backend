@@ -14,7 +14,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getEvents);
-router.get("/:id", getEventById); // Add this route to make it public
+router.get("/details/:id", getEventById); // Add this route to make it public
 
 // Protected routes
 router.use(protect);

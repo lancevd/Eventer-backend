@@ -16,12 +16,19 @@ export const getEvents = async (req, res) => {
 // Get events created by the logged-in user
 export const getUserEvents = async (req, res) => {
   try {
+    // Make sure req.user._id is a valid ObjectId
+    if (!req.user || !req.user._id) {
+      return res.status(400).json({ message: "User ID is missing or invalid" });
+    }
+
     const events = await Event.find({ createdBy: req.user._id });
     res.json(events);
   } catch (err) {
+    console.error("Error fetching user events:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Get event by ID
 export const getEventById = async (req, res) => {
