@@ -1,4 +1,7 @@
 import Event from "../models/event.js";
+import path from "path";
+import url from "url";
+
 
 // Get all events
 export const getEvents = async (req, res) => {
@@ -31,7 +34,7 @@ export const createEvent = async (req, res) => {
       time,
       location,
       description,
-      image: req.file ? req.file.path : null, // Check if file is uploaded
+      image: req.file ? req.file.filename : null, // Save the filename
       createdBy: req.user._id,
     });
 
@@ -42,6 +45,7 @@ export const createEvent = async (req, res) => {
   }
 };
 
+
 // Update an event
 export const updateEvent = async (req, res) => {
   const { id } = req.params;
@@ -49,24 +53,23 @@ export const updateEvent = async (req, res) => {
 
   try {
     const event = await Event.findById(id);
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (
-      event.createdBy.toString() !== req.user._id &&
-      req.user.role !== "admin"
-    ) {
-      return res.status(403).json({ message: "User not authorized" });
-    }
+    // if (
+    //   event.createdBy.toString() !== req.user._id ||
+    //   req.user.role !== "admin"
+    // ) {
+    //   return res.status(403).json({ message: "User not authorized" });
+    // }
 
     event.name = name;
     event.date = date;
     event.time = time;
     event.location = location;
     event.description = description;
-    if (req.file) event.image = req.file.path; // If a new image is uploaded
+    // if (req.file) event.image = req.file.path; 
     await event.save();
     res.json(event);
   } catch (err) {
@@ -85,14 +88,14 @@ export const deleteEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (
-      event.createdBy.toString() !== req.user._id &&
-      req.user.role !== "admin"
-    ) {
-      return res.status(403).json({ message: "User not authorized" });
-    }
+    // if (
+    //   event.createdBy.toString() !== req.user._id &&
+    //   req.user.role !== "admin"
+    // ) {
+    //   return res.status(403).json({ message: "User not authorized" });
+    // }
 
-    await event.remove();
+    await Event.findByIdAndDelete(id);
     res.json({ message: "Event removed" });
   } catch (err) {
     res.status(500).json({ message: err.message });
