@@ -23,6 +23,22 @@ export const getUserEvents = async (req, res) => {
   }
 };
 
+// Get event by ID
+export const getEventById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const event = await Event.findById(id).populate("createdBy", "username");
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 // Create a new event
 export const createEvent = async (req, res) => {
   const { name, date, time, location, description } = req.body;
