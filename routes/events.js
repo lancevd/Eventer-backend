@@ -11,6 +11,7 @@ import { protect, admin } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Configure multer for file uploads
 const upload = multer({ dest: "uploads/" });
 
 // Public routes

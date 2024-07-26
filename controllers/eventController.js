@@ -31,7 +31,7 @@ export const createEvent = async (req, res) => {
       time,
       location,
       description,
-      image: req.file.path, // Assuming you're using multer to handle file uploads
+      image: req.file ? req.file.path : null, // Check if file is uploaded
       createdBy: req.user._id,
     });
 
@@ -67,7 +67,6 @@ export const updateEvent = async (req, res) => {
     event.location = location;
     event.description = description;
     if (req.file) event.image = req.file.path; // If a new image is uploaded
-
     await event.save();
     res.json(event);
   } catch (err) {
